@@ -1,4 +1,4 @@
-module twilio-compositions
+module github.com/matthxwpavin/twilio-compositions
 
 go 1.16
 

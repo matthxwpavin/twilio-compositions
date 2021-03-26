@@ -1,9 +1,9 @@
 package twilio
 
 import (
-	"twilio-compositions/video"
-	"twilio-compositions/video/composition"
-	"twilio-compositions/video/compositionhooks"
+	"github.com/matthxwpavin/twilio-compositions/video"
+	"github.com/matthxwpavin/twilio-compositions/video/composition"
+	"github.com/matthxwpavin/twilio-compositions/video/compositionhooks"
 	"encoding/json"
 	"errors"
 	"github.com/spf13/viper"

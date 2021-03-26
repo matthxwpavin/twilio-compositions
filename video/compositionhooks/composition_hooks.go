@@ -1,7 +1,7 @@
 package compositionhooks
 
 import (
-	"twilio-compositions/video"
+	"github.com/matthxwpavin/twilio-compositions/video"
 	"encoding/json"
 	"errors"
 	"github.com/ajg/form"
