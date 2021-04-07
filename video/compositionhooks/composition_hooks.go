@@ -72,14 +72,14 @@ type CreateParams struct {
 	// The track names in this parameter can include an asterisk as a wild card character,
 	// which matches zero or more characters in a track name. For example,
 	// student* includes tracks named student as well as studentTeam.
-	AudioSources []string `form:"AudioSources,omitempty"`
+	AudioSources *string `form:"AudioSources,omitempty"`
 
 	// An array of track names to exclude. A composition triggered by the composition hook
 	// includes all audio sources specified in audio_sources except
 	// for those specified in audio_sources_excluded. The track names in this parameter can include
 	// an asterisk as a wild card character, which matches zero or more characters in a track name.
 	// For example, student* excludes student as well as studentTeam. This parameter can also be empty.
-	AudioSourcesExcluded []string `form:"AudioSourcesExcluded,omitempty"`
+	AudioSourcesExcluded *string `form:"AudioSourcesExcluded,omitempty"`
 
 	// A string that describes the columns (width) and rows (height)
 	// of the generated composed video in pixels.
