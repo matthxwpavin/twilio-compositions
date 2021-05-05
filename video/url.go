@@ -31,3 +31,11 @@ func (url VideoUrl) WithCompositionURIMedia(compositionSid string) string {
 func (url VideoUrl) WithCompositionURIAndQueryParameters(values url.Values) string {
 	return url.WithCompositionURI() + "?" + values.Encode()
 }
+
+func (url VideoUrl) WithRoomsURI() string {
+	return string(url) + "/v1/Rooms"
+}
+
+func (url VideoUrl) WithRoomsURIAndQueryParameters(values url.Values) string {
+	return url.WithRoomsURI() + "?" + values.Encode()
+}

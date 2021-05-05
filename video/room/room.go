@@ -41,71 +41,84 @@ const (
 	StatusRecFailed = "recording-failed"
 )
 
+type RoomInstanceList struct {
+	Rooms []RoomInstance `json:"rooms"`
+	Meta  struct {
+		Page            int    `json:"page"`
+		PageSize        int    `json:"page_size"`
+		FirstPageURL    string `json:"first_page_url"`
+		PreviousPageURL string `json:"previous_page_url"`
+		URL             string `json:"url"`
+		NextPageURL     string `json:"next_page_url"`
+		Key             string `json:"key"`
+	} `json:"meta"`
+}
+
 type RoomInstance struct {
 	// The SID of the Account that created the Room resource.
-	AccountSid                   string    `json:"account_sid"`
+	AccountSid string `json:"account_sid"`
 
 	// The date and time in GMT when the resource was created specified in ISO 8601 format.
-	DateCreated                  time.Time `json:"date_created"`
+	DateCreated time.Time `json:"date_created"`
 
 	// The date and time in GMT when the resource was last updated specified in ISO 8601 format.
-	DateUpdated                  time.Time `json:"date_updated"`
+	DateUpdated time.Time `json:"date_updated"`
 
 	// The status of the room. Can be: in-progress, failed, or completed.
-	Status                       string    `json:"status"`
+	Status string `json:"status"`
 
 	// The type of room. Can be: go, peer-to-peer, group-small, or group. The default value is group.
-	Type                         string    `json:"type"`
+	Type string `json:"type"`
 
 	// The unique string that we created to identify the Room resource.
-	Sid                          string    `json:"sid"`
+	Sid string `json:"sid"`
 
 	// Deprecated, now always considered to be true.
-	EnableTurn                   bool      `json:"enable_turn"`
+	EnableTurn bool `json:"enable_turn"`
 
 	// An application-defined string that uniquely identifies the resource. It can be used
 	// as a room_sid in place of the resource's sid in the URL to address the resource.
 	// This value is unique for in-progress rooms. SDK clients can use this name to connect to the room.
 	// REST API clients can use this name in place of the Room SID
 	// to interact with the room as long as the room is in-progress.
-	UniqueName                   string    `json:"unique_name"`
+	UniqueName string `json:"unique_name"`
 
 	// The maximum number of concurrent Participants allowed in the room.
-	MaxParticipants              int       `json:"max_participants"`
+	MaxParticipants int `json:"max_participants"`
 
 	// The maximum number of published audio, video, and data tracks
 	// all participants combined are allowed to publish in the room at the same time.
-	MaxConcurrentPublishedTracks int       `json:"max_concurrent_published_tracks"`
+	MaxConcurrentPublishedTracks int `json:"max_concurrent_published_tracks"`
 
 	// The duration of the room in seconds.
-	Duration                     int       `json:"duration"`
+	Duration int `json:"duration"`
 
 	// The HTTP method we use to call status_callback. Can be POST or GET and defaults to POST.
-	StatusCallbackMethod         string    `json:"status_callback_method"`
+	StatusCallbackMethod string `json:"status_callback_method"`
 
 	// The URL we call using the status_callback_method to send status information
 	// to your application on every room event. See Status Callbacks for more info.
-	StatusCallback               string    `json:"status_callback"`
+	StatusCallback string `json:"status_callback"`
 
 	// Whether to start recording when Participants connect. This feature is not available in peer-to-peer rooms.
-	RecordParticipantsOnConnect  bool      `json:"record_participants_on_connect"`
+	RecordParticipantsOnConnect bool `json:"record_participants_on_connect"`
 
 	// An array of the video codecs that are supported when publishing a track in the room.
 	// Can be: VP8 and H264. This feature is not available in peer-to-peer rooms
-	VideoCodecs                  []string  `json:"video_codecs"`
+	VideoCodecs []string `json:"video_codecs"`
 
 	// The region for the media server in Group Rooms.
 	// Can be: one of the available Media Regions. This feature is not available in peer-to-peer rooms.
-	MediaRegion                  string    `json:"media_region"`
+	MediaRegion string `json:"media_region"`
 
 	// The UTC end time of the room in ISO 8601 format.
-	EndTime                      time.Time `json:"end_time"`
+	EndTime time.Time `json:"end_time"`
 
 	// The absolute URL of the resource.
-	URL                          string    `json:"url"`
+	URL string `json:"url"`
 
 	// The URLs of related resources.
-	Links                        struct {
+	Links struct {
 		Participants   string `json:"participants"`
 		Recordings     string `json:"recordings"`
 		RecordingRules string `json:"recording_rules"`

@@ -1,11 +1,12 @@
 package twilio
 
 import (
+	"encoding/json"
+	"errors"
 	"github.com/matthxwpavin/twilio-compositions/video"
 	"github.com/matthxwpavin/twilio-compositions/video/composition"
 	"github.com/matthxwpavin/twilio-compositions/video/compositionhooks"
-	"encoding/json"
-	"errors"
+	"github.com/matthxwpavin/twilio-compositions/video/room"
 	"github.com/spf13/viper"
 	"io"
 	"net/http"
@@ -186,4 +187,29 @@ func (t *Twilio) validateResolution(param *compositionhooks.CreateParams) error 
 	}
 
 	return errors.New("Error, miss match resolution that given video layout.")
+}
+
+func (t *Twilio) ListCompletedRooms() (*[]room.RoomInstanceList, error) {
+	return t.ListRooms(url.Values{
+		"Status":   []string{"completed"},
+		"PageSize": []string{"20"},
+	})
+}
+
+func (t *Twilio) ListRooms(params url.Values) (*[]room.RoomInstanceList, error) {
+	req, err := http.NewRequest(http.MethodGet, t.baseUrl.WithRoomsURIAndQueryParameters(params), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	respBody, err := t.fireWithAuth(req)
+	if err != nil {
+		return nil, err
+	}
+
+	dst := &[]room.RoomInstanceList{}
+	if err := json.Unmarshal(respBody, dst); err != nil {
+		return nil, err
+	}
+	return dst, nil
 }
