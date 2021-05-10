@@ -1,6 +1,9 @@
 package rooms
 
-import "time"
+import (
+	"github.com/ajg/form"
+	"time"
+)
 
 const (
 	// https://www.twilio.com/docs/video/api/status-callbacks#rooms-callback-events
@@ -39,6 +42,14 @@ const (
 
 	// Failure during a recording operation request
 	StatusRecFailed = "recording-failed"
+)
+
+type RoomType string
+
+const (
+	TypeGo    RoomType = "go"           // WebRTC Go Rooms
+	TypeGroup RoomType = "group"        // Group Rooms
+	TypeP2P   RoomType = "peer-to-peer" // P2P rooms
 )
 
 type RoomInstanceList struct {
@@ -170,4 +181,19 @@ type RoomCallBack struct {
 
 	// The Kind of the Track (data, audio or video).
 	TrackKind string `form:"TrackKind"`
+}
+
+type ConfigCallbackParams struct {
+	UniqueName           string   `form:"UniqueName"`
+	StatusCallback       string   `form:"StatusCallback"`
+	StatusCallbackMethod string   `form:"StatusCallbackMethod"`
+	Type                 RoomType `form:"Type"`
+}
+
+func (p *ConfigCallbackParams) URLEncode() (string, error) {
+	v, err := form.EncodeToValues(p)
+	if err != nil {
+		return "", err
+	}
+	return v.Encode(), nil
 }

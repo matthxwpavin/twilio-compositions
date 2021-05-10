@@ -209,6 +209,20 @@ func (t *Twilio) ListRooms(params url.Values) (*rooms.RoomInstanceList, error) {
 	return dst, nil
 }
 
+func (t *Twilio) ConfigRoomsStatusCallback(param *rooms.ConfigCallbackParams) error {
+	body, err := param.URLEncode()
+	if err != nil {
+		return err
+	}
+	return t.request(
+		http.MethodPost,
+		t.baseUrl.WithRoomsURI(),
+		"application/x-www-form-urlencoded",
+		strings.NewReader(body),
+		nil,
+	)
+}
+
 func (t *Twilio) request(method, url, contentType string, body io.Reader, dst interface{}) error {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
