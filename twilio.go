@@ -188,6 +188,20 @@ func (t *Twilio) validateResolution(param video.VideoLayouter) error {
 	return errors.New("Error, miss match resolution that given video layout.")
 }
 
+func (t *Twilio) GetRoomInstance(roomSidOrName string) (*rooms.RoomInstance, error) {
+	dst := &rooms.RoomInstance{}
+	if err := t.request(
+		http.MethodGet,
+		t.baseUrl.WithRoomsURI()+"/"+roomSidOrName,
+		"",
+		nil,
+		dst,
+	); err != nil {
+		return nil, err
+	}
+	return dst, nil
+}
+
 func (t *Twilio) ListCompletedRooms(size uint) (*rooms.RoomInstanceList, error) {
 	return t.ListRooms(url.Values{
 		"Status":   []string{"completed"},
