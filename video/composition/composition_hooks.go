@@ -1,11 +1,7 @@
-package compositionhooks
+package composition
 
 import (
 	"github.com/matthxwpavin/twilio-compositions/video"
-	"encoding/json"
-	"errors"
-	"github.com/ajg/form"
-	"net/url"
 	"time"
 )
 
@@ -34,24 +30,13 @@ type CompositionHooksList struct {
 }
 
 const (
-	HD   = "1280x720"
-	PAL  = "1024x576"
-	VGA  = "640x480"
-	CIF  = "320x240"
+	HD  = "1280x720"
+	PAL = "1024x576"
+	VGA = "640x480"
+	CIF = "320x240"
 )
 
-var retFormatFunc = func(s string) Format {
-	return &s
-}
-
-type Format *string
-
-var (
-	MP4  = retFormatFunc("mp4")
-	WebM = retFormatFunc("webm")
-)
-
-type CreateParams struct {
+type HooksParams struct {
 	// A descriptive string that you create to describe the resource.
 	// It can be up to 100 characters long and it must be unique within the account.
 	FriendlyName string `form:"FriendlyName"`
@@ -65,7 +50,7 @@ type CreateParams struct {
 	// See Specifying Video Layouts for more info.
 	VideoLayout *video.VideoLayout `form:"-"`
 
-	// An array of track names from the same group room to merge into the compositions
+	// An array of track names from the same group rooms to merge into the compositions
 	// created by the composition hook. Can include zero or more track names.
 	// A composition triggered by the composition hook includes all audio sources
 	// specified in audio_sources except those specified in audio_sources_excluded.
@@ -106,52 +91,15 @@ type CreateParams struct {
 	// Whether to clip the intervals where there is no active media in the Compositions
 	// triggered by the composition hook. The default is true.
 	// Compositions with trim enabled are shorter when the Room is created and no Participant joins for a while
-	// as well as if all the Participants leave the room and join later,
+	// as well as if all the Participants leave the rooms and join later,
 	// because those gaps will be removed. See Specifying Video Layouts for more info.
 	Trim *bool `form:"Trim,omitempty"`
 }
 
-func (p *CreateParams) FormValues() (url.Values, error) {
-	var regionBytes []byte
-	hasVideolayout := p.VideoLayout != nil
-	if hasVideolayout {
-		regionMap := make(map[string]interface{})
-		for _, r := range p.VideoLayout.GetRegions() {
-			if r == nil {
-				return nil, errors.New("Error, the region is nil.")
-			}
-			if r.Prop == nil {
-				return nil, errors.New("Error, the region must have properties.")
-			}
+func (p *HooksParams) GetVideoLayout() *video.VideoLayout {
+	return p.VideoLayout
+}
 
-			propBytes, err := json.Marshal(r.Prop)
-			if err != nil {
-				return nil, err
-			}
-
-			propObj := make(map[string]interface{})
-			if err := json.Unmarshal(propBytes, &propObj); err != nil {
-				return nil, err
-			}
-
-			regionMap[r.Name] = propObj
-		}
-
-		var err error
-		regionBytes, err = json.Marshal(regionMap)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	url, err := form.EncodeToValues(p)
-	if err != nil {
-		return nil, err
-	}
-
-	if hasVideolayout {
-		url.Set("VideoLayout", string(regionBytes))
-	}
-
-	return url, nil
+func (p *HooksParams) GetResolution() *string {
+	return p.Resolution
 }

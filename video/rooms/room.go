@@ -1,4 +1,4 @@
-package room
+package rooms
 
 import "time"
 
@@ -6,12 +6,12 @@ const (
 	// https://www.twilio.com/docs/video/api/status-callbacks#rooms-callback-events
 
 	// Room created.
-	StatusCallbackCreated = "room-created"
+	StatusCallbackCreated = "rooms-created"
 
 	// Room completed.
 	// (Note: Rooms created by the REST API will
-	// fire room-ended event when room is empty for 5 minutes.)
-	StatusCallbackEnded = "room-ended"
+	// fire rooms-ended event when rooms is empty for 5 minutes.)
+	StatusCallbackEnded = "rooms-ended"
 
 	// Participant joined the Room.
 	StatusPartCon = "participant-connected"
@@ -64,10 +64,10 @@ type RoomInstance struct {
 	// The date and time in GMT when the resource was last updated specified in ISO 8601 format.
 	DateUpdated time.Time `json:"date_updated"`
 
-	// The status of the room. Can be: in-progress, failed, or completed.
+	// The status of the rooms. Can be: in-progress, failed, or completed.
 	Status string `json:"status"`
 
-	// The type of room. Can be: go, peer-to-peer, group-small, or group. The default value is group.
+	// The type of rooms. Can be: go, peer-to-peer, group-small, or group. The default value is group.
 	Type string `json:"type"`
 
 	// The unique string that we created to identify the Room resource.
@@ -78,32 +78,32 @@ type RoomInstance struct {
 
 	// An application-defined string that uniquely identifies the resource. It can be used
 	// as a room_sid in place of the resource's sid in the URL to address the resource.
-	// This value is unique for in-progress rooms. SDK clients can use this name to connect to the room.
+	// This value is unique for in-progress rooms. SDK clients can use this name to connect to the rooms.
 	// REST API clients can use this name in place of the Room SID
-	// to interact with the room as long as the room is in-progress.
+	// to interact with the rooms as long as the rooms is in-progress.
 	UniqueName string `json:"unique_name"`
 
-	// The maximum number of concurrent Participants allowed in the room.
+	// The maximum number of concurrent Participants allowed in the rooms.
 	MaxParticipants int `json:"max_participants"`
 
 	// The maximum number of published audio, video, and data tracks
-	// all participants combined are allowed to publish in the room at the same time.
+	// all participants combined are allowed to publish in the rooms at the same time.
 	MaxConcurrentPublishedTracks int `json:"max_concurrent_published_tracks"`
 
-	// The duration of the room in seconds.
+	// The duration of the rooms in seconds.
 	Duration int `json:"duration"`
 
 	// The HTTP method we use to call status_callback. Can be POST or GET and defaults to POST.
 	StatusCallbackMethod string `json:"status_callback_method"`
 
 	// The URL we call using the status_callback_method to send status information
-	// to your application on every room event. See Status Callbacks for more info.
+	// to your application on every rooms event. See Status Callbacks for more info.
 	StatusCallback string `json:"status_callback"`
 
 	// Whether to start recording when Participants connect. This feature is not available in peer-to-peer rooms.
 	RecordParticipantsOnConnect bool `json:"record_participants_on_connect"`
 
-	// An array of the video codecs that are supported when publishing a track in the room.
+	// An array of the video codecs that are supported when publishing a track in the rooms.
 	// Can be: VP8 and H264. This feature is not available in peer-to-peer rooms
 	VideoCodecs []string `json:"video_codecs"`
 
@@ -111,7 +111,7 @@ type RoomInstance struct {
 	// Can be: one of the available Media Regions. This feature is not available in peer-to-peer rooms.
 	MediaRegion string `json:"media_region"`
 
-	// The UTC end time of the room in ISO 8601 format.
+	// The UTC end time of the rooms in ISO 8601 format.
 	EndTime time.Time `json:"end_time"`
 
 	// The absolute URL of the resource.
@@ -142,7 +142,7 @@ type RoomCallBack struct {
 	// The Type of the Room generating this event.
 	RoomType string `form:"RoomType"`
 
-	// The Room event. For example, room-created. See Rooms Status Callback Events for the complete list.
+	// The Room event. For example, rooms-created. See Rooms Status Callback Events for the complete list.
 	StatusCallbackEvent string `form:"StatusCallbackEvent"`
 
 	// Time of the event, conformant to UTC ISO 8601 Timestamp.
@@ -158,7 +158,7 @@ type RoomCallBack struct {
 	// The Identity of the Participant generating this event. Participant identities are set via the Participant's Access Token
 	ParticipantIdentity string `form:"ParticipantIdentity"`
 
-	// Only on room-ended
+	// Only on rooms-ended
 	// The total duration of the Room, in seconds.
 	RoomDuration *uint64 `form:"RoomDuration"`
 

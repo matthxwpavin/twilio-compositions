@@ -8,6 +8,11 @@ import (
 	"strings"
 )
 
+type VideoLayouter interface {
+	GetVideoLayout() *VideoLayout
+	GetResolution() *string
+}
+
 type VideoLayout struct {
 	Resolution  string
 	resolutionW uint16
@@ -370,7 +375,7 @@ type RegionProp struct {
 	//    Zero or more ParticipantSid
 	//    Zero or more Track names. These can be specified using wildcards (e.g. student*).
 	//    The use of [*] has semantics "all if any" meaning zero or more (i.e. all)
-	//    depending on whether the target room had video tracks.
+	//    depending on whether the target rooms had video tracks.
 	VideoSources []string `json:"video_sources" alias:"video_sources"`
 
 	// An array of video sources to exclude from this region. This region will attempt to display all sources specified in video_sources except for the ones specified in video_sources_excluded. This parameter may include:

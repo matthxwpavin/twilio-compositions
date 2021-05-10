@@ -3,10 +3,11 @@ package twilio
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/ajg/form"
 	"github.com/matthxwpavin/twilio-compositions/video"
 	"github.com/matthxwpavin/twilio-compositions/video/composition"
-	"github.com/matthxwpavin/twilio-compositions/video/compositionhooks"
-	"github.com/matthxwpavin/twilio-compositions/video/room"
+	"github.com/matthxwpavin/twilio-compositions/video/rooms"
 	"github.com/spf13/viper"
 	"io"
 	"net/http"
@@ -46,7 +47,30 @@ func New(credential *Credential) (*Twilio, error) {
 	}, nil
 }
 
-func (t *Twilio) CreateCompositionHooks(param *compositionhooks.CreateParams) (*compositionhooks.CompositionHooks, error) {
+func (t *Twilio) CreateComposition(param *composition.ComposeParams) (*composition.Composition, error) {
+	if err := t.validateResolution(param); err != nil {
+		return nil, err
+	}
+
+	form, err := t.formValues(param)
+	if err != nil {
+		return nil, err
+	}
+
+	ret := &composition.Composition{}
+	if err := t.request(
+		http.MethodPost,
+		t.baseUrl.WithCompositionURI(),
+		"application/x-www-form-urlencoded",
+		strings.NewReader(form.Encode()),
+		ret,
+	); err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
+func (t *Twilio) CreateCompositionHooks(param *composition.HooksParams) (*composition.CompositionHooks, error) {
 	if param.FriendlyName == "" {
 		return nil, errors.New("Error, Friendly Name must not be nil.")
 	}
@@ -54,46 +78,33 @@ func (t *Twilio) CreateCompositionHooks(param *compositionhooks.CreateParams) (*
 		return nil, err
 	}
 
-	form, err := param.FormValues()
+	form, err := t.formValues(param)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(
+	ret := &composition.CompositionHooks{}
+	if err := t.request(
 		http.MethodPost,
 		t.baseUrl.WithCompositionHooksURI(),
+		"application/x-www-form-urlencoded",
 		strings.NewReader(form.Encode()),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	respBody, err := t.fireWithAuth(req)
-	if err != nil {
-		return nil, err
-	}
-
-	ret := &compositionhooks.CompositionHooks{}
-	if err := json.Unmarshal(respBody, ret); err != nil {
+		ret,
+	); err != nil {
 		return nil, err
 	}
 	return ret, nil
 }
 
-func (t *Twilio) ListEnabledCompositionHooks() (*compositionhooks.CompositionHooksList, error) {
-	req, err := http.NewRequest(http.MethodGet, t.baseUrl.WithCompositionHooksURI(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	respBody, err := t.fireWithAuth(req)
-	if err != nil {
-		return nil, err
-	}
-
-	ret := &compositionhooks.CompositionHooksList{}
-	if err := json.Unmarshal(respBody, ret); err != nil {
+func (t *Twilio) ListEnabledCompositionHooks() (*composition.CompositionHooksList, error) {
+	ret := &composition.CompositionHooksList{}
+	if err := t.request(
+		http.MethodGet,
+		t.baseUrl.WithCompositionHooksURI(),
+		"",
+		nil,
+		ret,
+	); err != nil {
 		return nil, err
 	}
 
@@ -101,34 +112,27 @@ func (t *Twilio) ListEnabledCompositionHooks() (*compositionhooks.CompositionHoo
 }
 
 func (t *Twilio) DeleteCompositionHooks(hooksSid string) error {
-	req, err := http.NewRequest(http.MethodDelete, t.baseUrl.WithCompositionHooksURIAndPathParam(hooksSid), nil)
-	if err != nil {
-		return err
-	}
-
-	if _, err := t.fireWithAuth(req); err != nil {
-		return err
-	}
-
-	return nil
+	return t.request(
+		http.MethodDelete,
+		t.baseUrl.WithCompositionHooksURIAndPathParam(hooksSid),
+		"",
+		nil,
+		nil,
+	)
 }
 
 func (t *Twilio) ListRoomCompletedCompositions(roomSid string) (*composition.CompositionList, error) {
-	req, err := http.NewRequest(http.MethodGet, t.baseUrl.WithCompositionURIAndQueryParameters(url.Values{
-		"RoomSid": []string{roomSid},
-		"Status":  []string{composition.StatusCompleted},
-	}), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	respBody, err := t.fireWithAuth(req)
-	if err != nil {
-		return nil, err
-	}
-
 	ret := &composition.CompositionList{}
-	if err := json.Unmarshal(respBody, ret); err != nil {
+	if err := t.request(
+		http.MethodGet,
+		t.baseUrl.WithCompositionURIAndQueryParameters(url.Values{
+			"RoomSid": []string{roomSid},
+			"Status":  []string{composition.StatusCompleted},
+		}),
+		"",
+		nil,
+		ret,
+	); err != nil {
 		return nil, err
 	}
 
@@ -136,21 +140,16 @@ func (t *Twilio) ListRoomCompletedCompositions(roomSid string) (*composition.Com
 }
 
 func (t *Twilio) GetCompositionMedia(comSid string) (*composition.Composition, error) {
-	req, err := http.NewRequest(http.MethodGet, t.baseUrl.WithCompositionURIMedia(comSid), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	respBody, err := t.fireWithAuth(req)
-	if err != nil {
-		return nil, err
-	}
-
 	ret := &composition.Composition{}
-	if err := json.Unmarshal(respBody, ret); err != nil {
+	if err := t.request(
+		http.MethodGet,
+		t.baseUrl.WithCompositionURIMedia(comSid),
+		"",
+		nil,
+		ret,
+	); err != nil {
 		return nil, err
 	}
-
 	return ret, nil
 }
 
@@ -173,15 +172,15 @@ func (t *Twilio) fireWithAuth(req *http.Request) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
-func (t *Twilio) validateResolution(param *compositionhooks.CreateParams) error {
-	resolution := param.VideoLayout.GetResolution()
-	if param.Resolution == nil {
-		resolution = string(compositionhooks.VGA)
-		if resolution == param.VideoLayout.GetResolution() {
+func (t *Twilio) validateResolution(param video.VideoLayouter) error {
+	resolution := param.GetVideoLayout().GetResolution()
+	if param.GetResolution() == nil {
+		resolution = composition.VGA
+		if resolution == param.GetVideoLayout().GetResolution() {
 			return nil
 		}
 	} else {
-		if *param.Resolution == resolution {
+		if *param.GetResolution() == resolution {
 			return nil
 		}
 	}
@@ -189,27 +188,89 @@ func (t *Twilio) validateResolution(param *compositionhooks.CreateParams) error 
 	return errors.New("Error, miss match resolution that given video layout.")
 }
 
-func (t *Twilio) ListCompletedRooms() (*[]room.RoomInstanceList, error) {
+func (t *Twilio) ListCompletedRooms(size uint) (*rooms.RoomInstanceList, error) {
 	return t.ListRooms(url.Values{
 		"Status":   []string{"completed"},
-		"PageSize": []string{"20"},
+		"PageSize": []string{fmt.Sprintf("%d", size)},
 	})
 }
 
-func (t *Twilio) ListRooms(params url.Values) (*[]room.RoomInstanceList, error) {
-	req, err := http.NewRequest(http.MethodGet, t.baseUrl.WithRoomsURIAndQueryParameters(params), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	respBody, err := t.fireWithAuth(req)
-	if err != nil {
-		return nil, err
-	}
-
-	dst := &[]room.RoomInstanceList{}
-	if err := json.Unmarshal(respBody, dst); err != nil {
+func (t *Twilio) ListRooms(params url.Values) (*rooms.RoomInstanceList, error) {
+	dst := &rooms.RoomInstanceList{}
+	if err := t.request(
+		http.MethodGet,
+		t.baseUrl.WithRoomsURIAndQueryParameters(params),
+		"",
+		nil,
+		dst,
+	); err != nil {
 		return nil, err
 	}
 	return dst, nil
+}
+
+func (t *Twilio) request(method, url, contentType string, body io.Reader, dst interface{}) error {
+	req, err := http.NewRequest(method, url, body)
+	if err != nil {
+		return err
+	}
+
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+	respBody, err := t.fireWithAuth(req)
+	if err != nil {
+		return err
+	}
+
+	if dst == nil {
+		return nil
+	}
+	return json.Unmarshal(respBody, dst)
+}
+
+func (t *Twilio) formValues(p video.VideoLayouter) (url.Values, error) {
+
+	var regionBytes []byte
+	layout := p.GetVideoLayout()
+	hasVideolayout := layout != nil
+	if hasVideolayout {
+		regionMap := make(map[string]interface{})
+		for _, r := range layout.GetRegions() {
+			if r == nil {
+				return nil, errors.New("Error, the region is nil.")
+			}
+			if r.Prop == nil {
+				return nil, errors.New("Error, the region must have properties.")
+			}
+
+			propBytes, err := json.Marshal(r.Prop)
+			if err != nil {
+				return nil, err
+			}
+
+			propObj := make(map[string]interface{})
+			if err := json.Unmarshal(propBytes, &propObj); err != nil {
+				return nil, err
+			}
+
+			regionMap[r.Name] = propObj
+		}
+
+		var err error
+		regionBytes, err = json.Marshal(regionMap)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	url, err := form.EncodeToValues(p)
+	if err != nil {
+		return nil, err
+	}
+
+	if hasVideolayout {
+		url.Set("VideoLayout", string(regionBytes))
+	}
+	return url, nil
 }
