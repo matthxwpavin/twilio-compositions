@@ -5,12 +5,14 @@ import (
 	"time"
 )
 
+type CompStatus string
+
 const (
-	StatusEnqueued   = "enqueued"
-	StatusProcessing = "processing"
-	StatusCompleted  = "completed"
-	StatusDeleted    = "deleted"
-	StatusFailed     = "failed"
+	StatusEnqueued   CompStatus = "enqueued"
+	StatusProcessing CompStatus = "processing"
+	StatusCompleted  CompStatus = "completed"
+	StatusDeleted    CompStatus = "deleted"
+	StatusFailed     CompStatus = "failed"
 )
 
 type Composition struct {
@@ -123,4 +125,19 @@ func (p *ComposeParams) GetVideoLayout() *video.VideoLayout {
 
 func (p *ComposeParams) GetResolution() *string {
 	return p.Resolution
+}
+
+type GetParams struct {
+	// Read only Composition resources with this status.
+	// Can be: enqueued, processing, completed, deleted, or failed.
+	Status *CompStatus `form:"Status,omitempty"`
+
+	// Read only Composition resources created on or after this ISO 8601 date-time with time zone.
+	DateCreatedAfter *string `form:"DateCreatedAfter,omitempty"`
+
+	// Read only Composition resources created before this ISO 8601 date-time with time zone.
+	DateCreatedBefore *string `form:"DateCreatedBefore,omitempty"`
+
+	// Read only Composition resources with this Room SID.
+	RoomSid *string `form:"RoomSid,omitempty"`
 }

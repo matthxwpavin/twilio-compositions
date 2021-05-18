@@ -132,13 +132,32 @@ func (t *Twilio) DeleteCompositionHooks(hooksSid string) error {
 	)
 }
 
+func (t *Twilio) ListCompositions(param *composition.GetParams) (*composition.CompositionList, error) {
+	ret := &composition.CompositionList{}
+	values, err := form.EncodeToValues(param)
+	if err != nil {
+		return nil, err
+	}
+	if err := t.request(
+		http.MethodGet,
+		t.baseUrl.WithCompositionURIAndQueryParameters(values),
+		"",
+		nil,
+		ret,
+	); err != nil {
+		return nil, err
+	}
+
+	return ret, nil
+}
+
 func (t *Twilio) ListRoomCompletedCompositions(roomSid string) (*composition.CompositionList, error) {
 	ret := &composition.CompositionList{}
 	if err := t.request(
 		http.MethodGet,
 		t.baseUrl.WithCompositionURIAndQueryParameters(url.Values{
 			"RoomSid": []string{roomSid},
-			"Status":  []string{composition.StatusCompleted},
+			"Status":  []string{string(composition.StatusCompleted)},
 		}),
 		"",
 		nil,

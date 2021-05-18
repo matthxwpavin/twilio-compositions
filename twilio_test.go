@@ -7,14 +7,28 @@ import (
 	"github.com/matthxwpavin/twilio-compositions/video"
 	"github.com/matthxwpavin/twilio-compositions/video/composition"
 	"github.com/matthxwpavin/twilio-compositions/video/rooms"
+	"github.com/pelletier/go-toml"
+	"path/filepath"
 	"testing"
+	"time"
 )
 
 var twi = func() *Twilio {
+	path, err := filepath.Abs("../cn-std-api-server/conf/server_conf_dev.toml")
+	if err != nil {
+		panic(err)
+	}
+
+	tree, err := toml.LoadFile(filepath.Clean(path))
+	if err != nil {
+		panic(err)
+	}
+
+	_map := tree.ToMap()["twilio"].(map[string]interface{})
 	t, err := New(&Credential{
-		AccountSid:   "ACbd053199ec191510366e3ff202715466",
-		ApiKeySid:    "SK7269d82865b04ff37b71ca4a90bb8555",
-		ApiKeySecret: "A9NWMeXdakDv6qDB4hT3sgs9ZVIaVszd",
+		AccountSid:   _map["account_sid"].(string),
+		ApiKeySid:    _map["api_key_sid"].(string),
+		ApiKeySecret: _map["api_key_secret"].(string),
 	})
 	if err != nil {
 		panic(err)
@@ -204,4 +218,35 @@ func TestCreateRoom(t *testing.T) {
 	}
 
 	fmt.Println(room)
+}
+
+func TestListCompositions(t *testing.T) {
+	status := composition.StatusCompleted
+	afterDate, err := time.Parse("2006-01-02 15:04:05Z07:00", "2021-05-18 00:42:16+00:00")
+	if err != nil {
+		t.Errorf("error to parse time: %v", err)
+	}
+
+	after := afterDate.Format(time.RFC3339)
+	param := composition.GetParams{
+		Status:           &status,
+		DateCreatedAfter: &after,
+	}
+
+	ret, err := twi.ListCompositions(&param)
+	if err != nil {
+		t.Errorf("error to list compositions: %v", err)
+	}
+
+	b, err := json.Marshal(ret)
+	if err != nil {
+		t.Errorf("error to marshal: %v", err)
+	}
+
+	buf := bytes.NewBuffer(nil)
+	if err := json.Indent(buf, b, "\t", "\t"); err != nil {
+		t.Errorf("error to indent: %v", err)
+	}
+
+	fmt.Printf(buf.String())
 }
