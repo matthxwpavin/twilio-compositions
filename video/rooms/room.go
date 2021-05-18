@@ -1,7 +1,6 @@
 package rooms
 
 import (
-	"github.com/ajg/form"
 	"time"
 )
 
@@ -136,6 +135,61 @@ type RoomInstance struct {
 	} `json:"links"`
 }
 
+type VideoCodec string
+
+const (
+	VideoCodecVP8  VideoCodec = "VP8"
+	VideoCodecH264 VideoCodec = "H264"
+)
+
+type RoomPostParams struct {
+	// Deprecated, now always considered to be true.
+	EnableTurn *bool `form:"EnableTurn,omitempty"`
+
+	// The type of room. Can be:
+	// go, peer-to-peer, group-small, or group.
+	// The default value is group.
+	Type *string `form:"Type,omitempty"`
+
+	// An application-defined string that uniquely identifies the resource.
+	// It can be used as a room_sid in place of the resource's sid in the URL to address the resource.
+	// This value is unique for in-progress rooms.
+	// SDK clients can use this name to connect to the room.
+	// REST API clients can use this name in place of the Room SID
+	// to interact with the room as long as the room is in-progress.
+	UniqueName *string `form:"UniqueName,omitempty"`
+
+	// The URL we should call using the status_callback_method
+	// to send status information to your application on every room event.
+	// See Status Callbacks for more info.
+	StatusCallback *string `form:"StatusCallback,omitempty"`
+
+	// The HTTP method we should use to call status_callback. Can be POST or GET.
+	StatusCallbackMethod *string `form:"StatusCallbackMethod,omitempty"`
+
+	// The maximum number of concurrent Participants allowed in the room.
+	// Peer-to-peer rooms can have up to 10 Participants.
+	// Small Group rooms can have up to 4 Participants.
+	// Group rooms can have up to 50 Participants.
+	MaxParticipants *int `form:"MaxParticipants,omitempty"`
+
+	// Whether to start recording when Participants connect.
+	// This feature is not available in peer-to-peer rooms.
+	RecordParticipantsOnConnect *bool `form:"RecordParticipantsOnConnect,omitempty"`
+
+	// An array of the video codecs that are supported when publishing a track in the room. 
+	// Can be: VP8 and H264. This feature is not available in peer-to-peer rooms
+	VideoCodecs []VideoCodec `form:"VideoCodecs,omitempty"`
+
+	// The region for the media server in Group Rooms.
+	// Can be: one of the available Media Regions.
+	// This feature is not available in peer-to-peer rooms.
+	MediaRegions *string `form:"MediaRegions,omitempty"`
+
+	// A collection of Recording Rules that describe how to include or exclude matching tracks for recording
+	RecordingRules interface{} `form:"RecordingRules,omitempty"`
+}
+
 // https://www.twilio.com/docs/video/api/status-callbacks#rooms-event-parameters
 type RoomCallBack struct {
 	// The AccountSid associated with this Room
@@ -188,12 +242,4 @@ type ConfigCallbackParams struct {
 	StatusCallback       string   `form:"StatusCallback"`
 	StatusCallbackMethod string   `form:"StatusCallbackMethod"`
 	Type                 RoomType `form:"Type"`
-}
-
-func (p *ConfigCallbackParams) URLEncode() (string, error) {
-	v, err := form.EncodeToValues(p)
-	if err != nil {
-		return "", err
-	}
-	return v.Encode(), nil
 }

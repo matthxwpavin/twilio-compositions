@@ -52,7 +52,7 @@ func TestConfigRoomStatusCallback(t *testing.T) {
 	}
 }
 
-func TestListEnableCompositionHooks(t *testing.T) {
+func TestListEnabledCompositionHooks(t *testing.T) {
 	hooks, err := twi.ListEnabledCompositionHooks()
 	if err != nil {
 		t.Errorf("error to list composition hooks: %v", err)
@@ -88,10 +88,12 @@ func TestCreateComposition(t *testing.T) {
 	if err := v.AddRegion(reg); err != nil {
 		t.Errorf("error to add region: %v", err)
 	}
-	trim := true
-	AudSource := "*"
-	res := composition.VGA
 
+	var (
+		trim      = true
+		AudSource = "*"
+		res       = composition.VGA
+	)
 	_, err = twi.CreateComposition(&composition.ComposeParams{
 		RoomSid:              "",
 		VideoLayout:          v,
@@ -104,4 +106,114 @@ func TestCreateComposition(t *testing.T) {
 	if err != nil {
 		t.Errorf("error to create composition: %v", err)
 	}
+}
+
+func TestDeleteCompositionHooks(t *testing.T) {
+	if err := twi.DeleteCompositionHooks("HK62bd4058b41a9dff0101ec3641e97e83"); err != nil {
+		t.Errorf("error to delete composition hooks: %v", err)
+	}
+}
+
+func TestCreateCompositionHooks(t *testing.T) {
+	v, err := video.NewVideoLayout(composition.VGA)
+	if err != nil {
+		t.Errorf("error to new video composition: %v", err)
+	}
+
+	reuse := video.ReuseShowOldest
+	reg := &video.Region{
+		Name: "grid",
+		Prop: &video.RegionProp{
+			Reuse:                &reuse,
+			VideoSources:         []string{"*"},
+			VideoSourcesExcluded: nil,
+		},
+	}
+
+	if err := v.AddRegion(reg); err != nil {
+		t.Errorf("error to add region: %v", err)
+	}
+
+	var (
+		trim      = true
+		AudSource = "*"
+		res       = composition.VGA
+		enabled   = true
+	)
+	_, err = twi.CreateCompositionHooks(&composition.HooksParams{
+		FriendlyName:         "ClicknicCompositionHooks",
+		Enabled:              &enabled,
+		VideoLayout:          v,
+		AudioSources:         &AudSource,
+		AudioSourcesExcluded: nil,
+		Resolution:           &res,
+		Format:               composition.MP4,
+		Trim:                 &trim,
+	})
+	if err != nil {
+		t.Errorf("error to create composition: %v", err)
+	}
+}
+
+func TestUpdateCompositionHooks(t *testing.T) {
+	v, err := video.NewVideoLayout(composition.VGA)
+	if err != nil {
+		t.Errorf("error to new video composition: %v", err)
+	}
+
+	reuse := video.ReuseShowOldest
+	reg := &video.Region{
+		Name: "grid",
+		Prop: &video.RegionProp{
+			Reuse:                &reuse,
+			VideoSources:         []string{"*"},
+			VideoSourcesExcluded: nil,
+		},
+	}
+
+	if err := v.AddRegion(reg); err != nil {
+		t.Errorf("error to add region: %v", err)
+	}
+
+	var (
+		trim      = true
+		AudSource = "*"
+		res       = composition.VGA
+		enabled   = false
+	)
+	_, err = twi.UpdateCompositionHooks(
+		"HK9ef12a9c3d22c3c3b05b5f1420125dfc",
+		&composition.HooksParams{
+			FriendlyName:         "ClicknicCompositionHooks",
+			Enabled:              &enabled,
+			VideoLayout:          v,
+			AudioSources:         &AudSource,
+			AudioSourcesExcluded: nil,
+			Resolution:           &res,
+			Format:               composition.MP4,
+			Trim:                 &trim,
+		})
+	if err != nil {
+		t.Errorf("error to create composition: %v", err)
+	}
+}
+
+func TestCreateRoom(t *testing.T) {
+	_type := "group-small"
+	uniqueName := "TestRoom"
+	callbackUrl := "https://dev.clicknic.co/api/v1/videoCall/StatusCallback/rooms"
+	callbackMethod := "POST"
+	param := &rooms.RoomPostParams{
+		Type:                 &_type,
+		UniqueName:           &uniqueName,
+		StatusCallback:       &callbackUrl,
+		StatusCallbackMethod: &callbackMethod,
+	}
+
+	room, err := twi.CreateRoom(param)
+	if err != nil {
+		t.Errorf("error to create room: %v", err)
+	}
+
+	fmt.Println(room)
 }

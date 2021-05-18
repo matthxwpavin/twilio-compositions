@@ -71,6 +71,17 @@ func (t *Twilio) CreateComposition(param *composition.ComposeParams) (*compositi
 }
 
 func (t *Twilio) CreateCompositionHooks(param *composition.HooksParams) (*composition.CompositionHooks, error) {
+	return t.requestCompositionHooks(http.MethodPost, t.baseUrl.WithCompositionHooksURI(), param)
+}
+
+func (t *Twilio) UpdateCompositionHooks(hooksSid string, param *composition.HooksParams) (*composition.CompositionHooks, error) {
+	if hooksSid == "" {
+		return nil, errors.New("Hooks SID must not be empty")
+	}
+	return t.requestCompositionHooks(http.MethodPost, t.baseUrl.WithCompositionHooksURIAndPathParam(hooksSid), param)
+}
+
+func (t *Twilio) requestCompositionHooks(method, url string, param *composition.HooksParams) (*composition.CompositionHooks, error) {
 	if param.FriendlyName == "" {
 		return nil, errors.New("Error, Friendly Name must not be nil.")
 	}
@@ -85,8 +96,8 @@ func (t *Twilio) CreateCompositionHooks(param *composition.HooksParams) (*compos
 
 	ret := &composition.CompositionHooks{}
 	if err := t.request(
-		http.MethodPost,
-		t.baseUrl.WithCompositionHooksURI(),
+		method,
+		url,
 		"application/x-www-form-urlencoded",
 		strings.NewReader(form.Encode()),
 		ret,
@@ -224,7 +235,7 @@ func (t *Twilio) ListRooms(params url.Values) (*rooms.RoomInstanceList, error) {
 }
 
 func (t *Twilio) ConfigRoomsStatusCallback(param *rooms.ConfigCallbackParams) error {
-	body, err := param.URLEncode()
+	body, err := form.EncodeToValues(param)
 	if err != nil {
 		return err
 	}
@@ -232,7 +243,7 @@ func (t *Twilio) ConfigRoomsStatusCallback(param *rooms.ConfigCallbackParams) er
 		http.MethodPost,
 		t.baseUrl.WithRoomsURI(),
 		"application/x-www-form-urlencoded",
-		strings.NewReader(body),
+		strings.NewReader(body.Encode()),
 		nil,
 	)
 }
@@ -301,4 +312,23 @@ func (t *Twilio) formValues(p video.VideoLayouter) (url.Values, error) {
 		url.Set("VideoLayout", string(regionBytes))
 	}
 	return url, nil
+}
+
+func (t *Twilio) CreateRoom(param *rooms.RoomPostParams) (*rooms.RoomInstance, error) {
+	body, err := form.EncodeToValues(param)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &rooms.RoomInstance{}
+	if err := t.request(
+		http.MethodPost,
+		t.baseUrl.WithRoomsURI(),
+		"application/x-www-form-urlencoded",
+		strings.NewReader(body.Encode()),
+		resp,
+	); err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
