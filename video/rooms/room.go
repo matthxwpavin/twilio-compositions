@@ -8,12 +8,12 @@ const (
 	// https://www.twilio.com/docs/video/api/status-callbacks#rooms-callback-events
 
 	// Room created.
-	StatusCallbackCreated = "rooms-created"
+	StatusCallbackCreated = "room-created"
 
 	// Room completed.
 	// (Note: Rooms created by the REST API will
 	// fire rooms-ended event when rooms is empty for 5 minutes.)
-	StatusCallbackEnded = "rooms-ended"
+	StatusCallbackEnded = "room-ended"
 
 	// Participant joined the Room.
 	StatusPartCon = "participant-connected"
@@ -46,9 +46,10 @@ const (
 type RoomType string
 
 const (
-	TypeGo    RoomType = "go"           // WebRTC Go Rooms
-	TypeGroup RoomType = "group"        // Group Rooms
-	TypeP2P   RoomType = "peer-to-peer" // P2P rooms
+	TypeGo         RoomType = "go" // WebRTC Go Rooms
+	TypeSmallGroup RoomType = "small-group"
+	TypeGroup      RoomType = "group"        // Group Rooms
+	TypeP2P        RoomType = "peer-to-peer" // P2P rooms
 )
 
 type RoomInstanceList struct {
@@ -149,7 +150,7 @@ type RoomPostParams struct {
 	// The type of room. Can be:
 	// go, peer-to-peer, group-small, or group.
 	// The default value is group.
-	Type *string `form:"Type,omitempty"`
+	Type *RoomType `form:"Type,omitempty"`
 
 	// An application-defined string that uniquely identifies the resource.
 	// It can be used as a room_sid in place of the resource's sid in the URL to address the resource.
@@ -235,11 +236,4 @@ type RoomCallBack struct {
 
 	// The Kind of the Track (data, audio or video).
 	TrackKind string `form:"TrackKind"`
-}
-
-type ConfigCallbackParams struct {
-	UniqueName           string   `form:"UniqueName"`
-	StatusCallback       string   `form:"StatusCallback"`
-	StatusCallbackMethod string   `form:"StatusCallbackMethod"`
-	Type                 RoomType `form:"Type"`
 }

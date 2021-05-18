@@ -7,7 +7,6 @@ import (
 	"github.com/matthxwpavin/twilio-compositions/video"
 	"github.com/matthxwpavin/twilio-compositions/video/composition"
 	"github.com/matthxwpavin/twilio-compositions/video/rooms"
-	"net/http"
 	"testing"
 )
 
@@ -39,17 +38,6 @@ func TestListCompletedRooms(t *testing.T) {
 		t.Errorf("error to indent: %v", err)
 	}
 	fmt.Println(dst.String())
-}
-
-func TestConfigRoomStatusCallback(t *testing.T) {
-	if err := twi.ConfigRoomsStatusCallback(&rooms.ConfigCallbackParams{
-		UniqueName:           "CNRoomsStatusCallback",
-		StatusCallback:       "https://dev.clicknic.co/api/v1/videoCall//statusCallback/rooms",
-		StatusCallbackMethod: http.MethodPost,
-		Type:                 rooms.TypeGroup,
-	}); err != nil {
-		t.Errorf("error to config rooms status callback: %v", err)
-	}
 }
 
 func TestListEnabledCompositionHooks(t *testing.T) {
@@ -199,9 +187,9 @@ func TestUpdateCompositionHooks(t *testing.T) {
 }
 
 func TestCreateRoom(t *testing.T) {
-	_type := "group-small"
-	uniqueName := "TestRoom"
-	callbackUrl := "https://dev.clicknic.co/api/v1/videoCall/StatusCallback/rooms"
+	_type := rooms.RoomType("group-small")
+	uniqueName := "TestRoom2"
+	callbackUrl := "https://xxxxxxx/api/v1/rooms/statusCallback"
 	callbackMethod := "POST"
 	param := &rooms.RoomPostParams{
 		Type:                 &_type,
