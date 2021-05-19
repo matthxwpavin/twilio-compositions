@@ -218,11 +218,11 @@ func (t *Twilio) validateResolution(param video.VideoLayouter) error {
 	return errors.New("Error, miss match resolution that given video layout.")
 }
 
-func (t *Twilio) GetRoomInstance(roomSidOrName string) (*rooms.RoomInstance, error) {
+func (t *Twilio) GetRoomInstance(roomSid string) (*rooms.RoomInstance, error) {
 	dst := &rooms.RoomInstance{}
 	if err := t.request(
 		http.MethodGet,
-		t.baseUrl.WithRoomsURI()+"/"+roomSidOrName,
+		t.baseUrl.WithRoomsURI()+"/"+roomSid,
 		"",
 		nil,
 		dst,

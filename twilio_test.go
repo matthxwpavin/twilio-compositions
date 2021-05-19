@@ -111,7 +111,7 @@ func TestCreateComposition(t *testing.T) {
 }
 
 func TestDeleteCompositionHooks(t *testing.T) {
-	if err := twi.DeleteCompositionHooks("HK62bd4058b41a9dff0101ec3641e97e83"); err != nil {
+	if err := twi.DeleteCompositionHooks("HK9ef12a9c3d22c3c3b05b5f1420125dfc"); err != nil {
 		t.Errorf("error to delete composition hooks: %v", err)
 	}
 }
@@ -222,15 +222,17 @@ func TestCreateRoom(t *testing.T) {
 
 func TestListCompositions(t *testing.T) {
 	status := composition.StatusCompleted
-	afterDate, err := time.Parse("2006-01-02 15:04:05Z07:00", "2021-05-18 00:42:16+00:00")
+	_, err := time.Parse("2006-01-02 15:04:05Z07:00", "2021-05-18 00:00:00+00:00")
 	if err != nil {
 		t.Errorf("error to parse time: %v", err)
 	}
 
-	after := afterDate.Format(time.RFC3339)
+	//after := afterDate.Format(time.RFC3339)
 	param := composition.GetParams{
-		Status:           &status,
-		DateCreatedAfter: &after,
+		Status: &status,
+		//DateCreatedAfter:  &after,
+		DateCreatedBefore: nil,
+		RoomSid:           nil,
 	}
 
 	ret, err := twi.ListCompositions(&param)
@@ -238,14 +240,27 @@ func TestListCompositions(t *testing.T) {
 		t.Errorf("error to list compositions: %v", err)
 	}
 
-	b, err := json.Marshal(ret)
+	jsonPrint(ret)
+}
+
+func TestGetRoomBySid(t *testing.T) {
+	room, err := twi.GetRoomInstance("")
 	if err != nil {
-		t.Errorf("error to marshal: %v", err)
+		t.Errorf("error to get a room: %v", err)
+	}
+
+	jsonPrint(room)
+}
+
+func jsonPrint(scheme interface{}) {
+	b, err := json.Marshal(scheme)
+	if err != nil {
+		panic(err)
 	}
 
 	buf := bytes.NewBuffer(nil)
-	if err := json.Indent(buf, b, "\t", "\t"); err != nil {
-		t.Errorf("error to indent: %v", err)
+	if err := json.Indent(buf, b, "", "\t"); err != nil {
+		panic(err)
 	}
 
 	fmt.Printf(buf.String())
