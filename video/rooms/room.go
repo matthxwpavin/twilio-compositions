@@ -47,7 +47,7 @@ type RoomType string
 
 const (
 	TypeGo         RoomType = "go" // WebRTC Go Rooms
-	TypeSmallGroup RoomType = "small-group"
+	TypeSmallGroup RoomType = "group-small"
 	TypeGroup      RoomType = "group"        // Group Rooms
 	TypeP2P        RoomType = "peer-to-peer" // P2P rooms
 )
