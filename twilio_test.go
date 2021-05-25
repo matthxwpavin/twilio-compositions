@@ -220,6 +220,22 @@ func TestCreateRoom(t *testing.T) {
 	fmt.Println(room)
 }
 
+func TestListCompositionsByRoomSid(t *testing.T) {
+	status := composition.StatusCompleted
+	roomSid := "RMac8c929571dfa4c7262d48dca8c5c355"
+	param := composition.GetParams{
+		Status:  &status,
+		RoomSid: &roomSid,
+	}
+
+	ret, err := twi.ListCompositions(&param)
+	if err != nil {
+		t.Errorf("error to list compositions: %v", err)
+	}
+
+	jsonPrint(ret)
+}
+
 func TestListCompositions(t *testing.T) {
 	status := composition.StatusCompleted
 	_, err := time.Parse("2006-01-02 15:04:05Z07:00", "2021-05-18 00:00:00+00:00")
@@ -244,7 +260,7 @@ func TestListCompositions(t *testing.T) {
 }
 
 func TestGetRoomBySid(t *testing.T) {
-	room, err := twi.GetRoomInstance("")
+	room, err := twi.GetRoomInstance("RMac8c929571dfa4c7262d48dca8c5c355")
 	if err != nil {
 		t.Errorf("error to get a room: %v", err)
 	}
