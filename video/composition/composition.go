@@ -67,7 +67,7 @@ var (
 type ComposeParams struct {
 
 	// The SID of the Group Room with the media tracks to be used as composition sources.
-	RoomSid string `form:"roomSid"`
+	RoomSid string `form:"RoomSid"`
 
 	// An object that describes the video layout of the composition hook in terms of regions.
 	// See Specifying Video Layouts for more info.

@@ -97,7 +97,7 @@ func TestCreateComposition(t *testing.T) {
 		res       = composition.VGA
 	)
 	_, err = twi.CreateComposition(&composition.ComposeParams{
-		RoomSid:              "",
+		RoomSid:              "x",
 		VideoLayout:          v,
 		AudioSources:         &AudSource,
 		AudioSourcesExcluded: nil,
@@ -111,7 +111,7 @@ func TestCreateComposition(t *testing.T) {
 }
 
 func TestDeleteCompositionHooks(t *testing.T) {
-	if err := twi.DeleteCompositionHooks("HK9ef12a9c3d22c3c3b05b5f1420125dfc"); err != nil {
+	if err := twi.DeleteCompositionHooks("HKf4f715876f9c46d8767542315c7b87ee"); err != nil {
 		t.Errorf("error to delete composition hooks: %v", err)
 	}
 }
@@ -221,18 +221,19 @@ func TestCreateRoom(t *testing.T) {
 }
 
 func TestListCompositions(t *testing.T) {
-	status := composition.StatusCompleted
+	//status := composition.StatusCompleted
 	_, err := time.Parse("2006-01-02 15:04:05Z07:00", "2021-05-18 00:00:00+00:00")
 	if err != nil {
 		t.Errorf("error to parse time: %v", err)
 	}
 
+	roomSid := "x"
 	//after := afterDate.Format(time.RFC3339)
 	param := composition.GetParams{
-		Status: &status,
+		//Status: &status,
 		//DateCreatedAfter:  &after,
 		DateCreatedBefore: nil,
-		RoomSid:           nil,
+		RoomSid:           &roomSid,
 	}
 
 	ret, err := twi.ListCompositions(&param)
