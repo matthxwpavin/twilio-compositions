@@ -4,13 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/url"
+	"path/filepath"
+	"testing"
+	"time"
+
 	"github.com/matthxwpavin/twilio-compositions/video"
 	"github.com/matthxwpavin/twilio-compositions/video/composition"
 	"github.com/matthxwpavin/twilio-compositions/video/rooms"
 	"github.com/pelletier/go-toml"
-	"path/filepath"
-	"testing"
-	"time"
 )
 
 var twi = func() *Twilio {
@@ -37,7 +39,7 @@ var twi = func() *Twilio {
 }()
 
 func TestListCompletedRooms(t *testing.T) {
-	rooms, err := twi.ListCompletedRooms(1)
+	rooms, err := twi.ListCompletedRooms(30)
 	if err != nil {
 		t.Errorf("error to list completed rooms: %v", err)
 	}
@@ -220,20 +222,32 @@ func TestCreateRoom(t *testing.T) {
 	fmt.Println(room)
 }
 
+func TestListRoomsByUniqueName(t *testing.T) {
+	rooms, err := twi.ListRooms(url.Values{
+		"UniqueName": []string{"x"},
+		"Status":     []string{"completed"},
+	})
+	if err != nil {
+		t.Errorf("error to list rooms: %v", err)
+	}
+
+	jsonPrint(rooms)
+}
+
 func TestListCompositions(t *testing.T) {
-	//status := composition.StatusCompleted
+	status := composition.StatusCompleted
 	_, err := time.Parse("2006-01-02 15:04:05Z07:00", "2021-05-18 00:00:00+00:00")
 	if err != nil {
 		t.Errorf("error to parse time: %v", err)
 	}
 
-	roomSid := "x"
+	roomSid := ""
 	//after := afterDate.Format(time.RFC3339)
 	param := composition.GetParams{
-		//Status: &status,
+		Status: &status,
 		//DateCreatedAfter:  &after,
-		DateCreatedBefore: nil,
-		RoomSid:           &roomSid,
+		//DateCreatedBefore: nil,
+		RoomSid: &roomSid,
 	}
 
 	ret, err := twi.ListCompositions(&param)
@@ -245,7 +259,7 @@ func TestListCompositions(t *testing.T) {
 }
 
 func TestGetRoomBySid(t *testing.T) {
-	room, err := twi.GetRoomInstance("")
+	room, err := twi.GetRoomInstance("RMfa70a2c1699bf4d5045d2525ea5af946")
 	if err != nil {
 		t.Errorf("error to get a room: %v", err)
 	}
