@@ -241,7 +241,7 @@ func TestListCompositions(t *testing.T) {
 		t.Errorf("error to parse time: %v", err)
 	}
 
-	roomSid := ""
+	roomSid := "RMe16ce5d69a5ed7369b9627b0d77a66b2"
 	//after := afterDate.Format(time.RFC3339)
 	param := composition.GetParams{
 		Status: &status,
@@ -265,6 +265,15 @@ func TestGetRoomBySid(t *testing.T) {
 	}
 
 	jsonPrint(room)
+}
+
+func TestListRecordingsByRoomSid(t *testing.T) {
+	records, err := twi.ListRecordingsByRoomSid("RMe16ce5d69a5ed7369b9627b0d77a66b2")
+	if err != nil {
+		t.Errorf("error to get recordings: %v", err)
+	}
+
+	jsonPrint(records)
 }
 
 func jsonPrint(scheme interface{}) {

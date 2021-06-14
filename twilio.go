@@ -7,6 +7,7 @@ import (
 	"github.com/ajg/form"
 	"github.com/matthxwpavin/twilio-compositions/video"
 	"github.com/matthxwpavin/twilio-compositions/video/composition"
+	"github.com/matthxwpavin/twilio-compositions/video/recording"
 	"github.com/matthxwpavin/twilio-compositions/video/rooms"
 	"github.com/spf13/viper"
 	"io"
@@ -244,6 +245,20 @@ func (t *Twilio) ListRooms(params url.Values) (*rooms.RoomInstanceList, error) {
 	if err := t.request(
 		http.MethodGet,
 		t.baseUrl.WithRoomsURIAndQueryParameters(params),
+		"",
+		nil,
+		dst,
+	); err != nil {
+		return nil, err
+	}
+	return dst, nil
+}
+
+func (t *Twilio) ListRecordingsByRoomSid(roomSid string) (*recording.RecordingList, error) {
+	dst := &recording.RecordingList{}
+	if err := t.request(
+		http.MethodGet,
+		t.baseUrl.WithRecordingsURIAndQueryParam(url.Values{"GroupingSid": []string{roomSid}}),
 		"",
 		nil,
 		dst,
