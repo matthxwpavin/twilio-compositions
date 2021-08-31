@@ -39,3 +39,11 @@ func (url VideoUrl) WithRoomsURI() string {
 func (url VideoUrl) WithRoomsURIAndQueryParameters(values url.Values) string {
 	return url.WithRoomsURI() + "?" + values.Encode()
 }
+
+func (url VideoUrl) WithRecordingsURI() string {
+	return string(BaseUrl) + "/v1/Recordings"
+}
+
+func (url VideoUrl) WithRecordingsURIAndQueryParam(values url.Values) string {
+	return url.WithRecordingsURI() + "?" + values.Encode()
+}
