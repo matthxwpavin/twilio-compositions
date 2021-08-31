@@ -25,8 +25,8 @@ type RecordingInstance struct {
 }
 
 type RecordingList struct {
-	Recording []RecordingInstance `json:"recording"`
-	Meta      struct {
+	Recordings []RecordingInstance `json:"recordings"`
+	Meta       struct {
 		Page            int     `json:"page"`
 		PageSize        int     `json:"page_size"`
 		FirstPageUrl    string  `json:"first_page_url"`
