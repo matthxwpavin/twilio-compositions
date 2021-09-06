@@ -106,10 +106,10 @@ type ComposeParams struct {
 	// The URL we should call using the status_callback_method to send status information
 	// to your application on every composition event. I
 	// f not provided, status callback events will not be dispatched.
-	StatusCallBack *string `form:"StatusCallBack,omitempty"`
+	StatusCallback *string `form:"StatusCallback,omitempty"`
 
 	// The HTTP method we should use to call status_callback. Can be: POST or GET and the default is POST.
-	StatusCallBackMethod *string `form:"StatusCallBackMethod,omitempty"`
+	StatusCallbackMethod *string `form:"StatusCallbackMethod,omitempty"`
 
 	// Whether to clip the intervals where there is no active media in the Compositions
 	// triggered by the composition hook. The default is true.
