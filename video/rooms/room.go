@@ -178,7 +178,7 @@ type RoomPostParams struct {
 	// This feature is not available in peer-to-peer rooms.
 	RecordParticipantsOnConnect *bool `form:"RecordParticipantsOnConnect,omitempty"`
 
-	// An array of the video codecs that are supported when publishing a track in the room. 
+	// An array of the video codecs that are supported when publishing a track in the room.
 	// Can be: VP8 and H264. This feature is not available in peer-to-peer rooms
 	VideoCodecs []VideoCodec `form:"VideoCodecs,omitempty"`
 
@@ -189,6 +189,10 @@ type RoomPostParams struct {
 
 	// A collection of Recording Rules that describe how to include or exclude matching tracks for recording
 	RecordingRules interface{} `form:"RecordingRules,omitempty"`
+
+	// When set to true, indicates that the participants in the room will only publish audio.
+	// No video tracks will be allowed. Group rooms only.
+	AudioOny *bool `form:"AudioOnly,omitempty"`
 }
 
 // https://www.twilio.com/docs/video/api/status-callbacks#rooms-event-parameters
