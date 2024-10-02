@@ -4,22 +4,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/matthxwpavin/twilio-compositions/video"
 	"github.com/matthxwpavin/twilio-compositions/video/composition"
 	"github.com/matthxwpavin/twilio-compositions/video/rooms"
 	"github.com/pelletier/go-toml"
-	"path/filepath"
-	"testing"
-	"time"
 )
 
 var twi = func() *Twilio {
-	path, err := filepath.Abs("../cn-std-api-server/conf/server_conf_dev.toml")
-	if err != nil {
-		panic(err)
-	}
-
-	tree, err := toml.LoadFile(filepath.Clean(path))
+	tree, err := toml.LoadFile("./credentials.toml")
 	if err != nil {
 		panic(err)
 	}
@@ -96,8 +91,8 @@ func TestCreateComposition(t *testing.T) {
 		AudSource = "*"
 		res       = composition.VGA
 	)
-	_, err = twi.CreateComposition(&composition.ComposeParams{
-		RoomSid:              "",
+	comp, err := twi.CreateComposition(&composition.ComposeParams{
+		RoomSid:              "RM25d7091d712e6f2ef1a589be78976596",
 		VideoLayout:          v,
 		AudioSources:         &AudSource,
 		AudioSourcesExcluded: nil,
@@ -108,6 +103,7 @@ func TestCreateComposition(t *testing.T) {
 	if err != nil {
 		t.Errorf("error to create composition: %v", err)
 	}
+	jsonPrint(comp)
 }
 
 func TestDeleteCompositionHooks(t *testing.T) {
@@ -260,7 +256,7 @@ func TestListCompositions(t *testing.T) {
 }
 
 func TestGetRoomBySid(t *testing.T) {
-	room, err := twi.GetRoomInstance("RMac8c929571dfa4c7262d48dca8c5c355")
+	room, err := twi.GetRoomInstance("RM25d7091d712e6f2ef1a589be78976596")
 	if err != nil {
 		t.Errorf("error to get a room: %v", err)
 	}
