@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"testing"
 	"time"
 
@@ -20,10 +21,14 @@ var twi = func() *Twilio {
 	}
 
 	_map := tree.ToMap()["twilio"].(map[string]interface{})
-	t, err := New(&Credential{
+	t := NewWithHttpClient(&Credential{
 		AccountSid:   _map["account_sid"].(string),
 		ApiKeySid:    _map["api_key_sid"].(string),
 		ApiKeySecret: _map["api_key_secret"].(string),
+	}, &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
 	})
 	if err != nil {
 		panic(err)
@@ -264,6 +269,25 @@ func TestGetRoomBySid(t *testing.T) {
 	jsonPrint(room)
 }
 
+func TestListRecordingsByRoomSid(t *testing.T) {
+	recs, err := twi.ListRecordingsByRoomSid(
+		"RM06bc1c5ac394effdb919741e792776b6",
+		&RecordingFilter{MediaType: MediaTypeAudio},
+	)
+	if err != nil {
+		t.Error("could not get recordings", err)
+	}
+	jsonPrint(recs)
+}
+
+func TestGetRecordingMedia(t *testing.T) {
+	media, err := twi.GetRecordingMedia("RT1b86a6c9832f78a7f02b4871fba2d13e")
+	if err != nil {
+		t.Error("could not get recording media", err)
+	}
+	print(media.RedirectTo)
+}
+
 func jsonPrint(scheme interface{}) {
 	b, err := json.Marshal(scheme)
 	if err != nil {
@@ -275,5 +299,5 @@ func jsonPrint(scheme interface{}) {
 		panic(err)
 	}
 
-	fmt.Printf(buf.String())
+	fmt.Println(buf.String())
 }

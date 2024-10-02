@@ -4,16 +4,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"strings"
+
 	"github.com/ajg/form"
 	"github.com/matthxwpavin/twilio-compositions/video"
 	"github.com/matthxwpavin/twilio-compositions/video/composition"
 	"github.com/matthxwpavin/twilio-compositions/video/recording"
 	"github.com/matthxwpavin/twilio-compositions/video/rooms"
 	"github.com/spf13/viper"
-	"io"
-	"net/http"
-	"net/url"
-	"strings"
 )
 
 type Credential struct {
@@ -37,18 +38,28 @@ type Twilio struct {
 	client  *http.Client
 }
 
-func New(credential *Credential) (*Twilio, error) {
-	if credential.AccountSid == "" || credential.ApiKeySecret == "" || credential.ApiKeySid == "" {
-		return nil, errors.New("Error, each credential must not be empty")
+func New(credential *Credential) *Twilio {
+	return NewWithHttpClient(credential, http.DefaultClient)
+}
+
+func NewWithHttpClient(credential *Credential, httpClient *http.Client) *Twilio {
+	if credential == nil {
+		panic("credential must not be nil")
 	}
+	if httpClient == nil {
+		panic("http client must not be nil")
+	}
+
 	return &Twilio{
 		cred:    credential,
 		baseUrl: video.BaseUrl,
-		client:  http.DefaultClient,
-	}, nil
+		client:  httpClient,
+	}
 }
 
-func (t *Twilio) CreateComposition(param *composition.ComposeParams) (*composition.Composition, error) {
+func (t *Twilio) CreateComposition(
+	param *composition.ComposeParams,
+) (*composition.Composition, error) {
 	if err := t.validateResolution(param); err != nil {
 		return nil, err
 	}
@@ -64,6 +75,7 @@ func (t *Twilio) CreateComposition(param *composition.ComposeParams) (*compositi
 		t.baseUrl.WithCompositionURI(),
 		"application/x-www-form-urlencoded",
 		strings.NewReader(form.Encode()),
+		nil,
 		ret,
 	); err != nil {
 		return nil, err
@@ -71,18 +83,30 @@ func (t *Twilio) CreateComposition(param *composition.ComposeParams) (*compositi
 	return ret, nil
 }
 
-func (t *Twilio) CreateCompositionHooks(param *composition.HooksParams) (*composition.CompositionHooks, error) {
+func (t *Twilio) CreateCompositionHooks(
+	param *composition.HooksParams,
+) (*composition.CompositionHooks, error) {
 	return t.requestCompositionHooks(http.MethodPost, t.baseUrl.WithCompositionHooksURI(), param)
 }
 
-func (t *Twilio) UpdateCompositionHooks(hooksSid string, param *composition.HooksParams) (*composition.CompositionHooks, error) {
+func (t *Twilio) UpdateCompositionHooks(
+	hooksSid string,
+	param *composition.HooksParams,
+) (*composition.CompositionHooks, error) {
 	if hooksSid == "" {
 		return nil, errors.New("Hooks SID must not be empty")
 	}
-	return t.requestCompositionHooks(http.MethodPost, t.baseUrl.WithCompositionHooksURIAndPathParam(hooksSid), param)
+	return t.requestCompositionHooks(
+		http.MethodPost,
+		t.baseUrl.WithCompositionHooksURIAndPathParam(hooksSid),
+		param,
+	)
 }
 
-func (t *Twilio) requestCompositionHooks(method, url string, param *composition.HooksParams) (*composition.CompositionHooks, error) {
+func (t *Twilio) requestCompositionHooks(
+	method, url string,
+	param *composition.HooksParams,
+) (*composition.CompositionHooks, error) {
 	if param.FriendlyName == "" {
 		return nil, errors.New("Error, Friendly Name must not be nil.")
 	}
@@ -101,6 +125,7 @@ func (t *Twilio) requestCompositionHooks(method, url string, param *composition.
 		url,
 		"application/x-www-form-urlencoded",
 		strings.NewReader(form.Encode()),
+		nil,
 		ret,
 	); err != nil {
 		return nil, err
@@ -114,6 +139,7 @@ func (t *Twilio) ListEnabledCompositionHooks() (*composition.CompositionHooksLis
 		http.MethodGet,
 		t.baseUrl.WithCompositionHooksURI(),
 		"",
+		nil,
 		nil,
 		ret,
 	); err != nil {
@@ -130,10 +156,13 @@ func (t *Twilio) DeleteCompositionHooks(hooksSid string) error {
 		"",
 		nil,
 		nil,
+		nil,
 	)
 }
 
-func (t *Twilio) ListCompositions(param *composition.GetParams) (*composition.CompositionList, error) {
+func (t *Twilio) ListCompositions(
+	param *composition.GetParams,
+) (*composition.CompositionList, error) {
 	ret := &composition.CompositionList{}
 	values, err := form.EncodeToValues(param)
 	if err != nil {
@@ -144,6 +173,7 @@ func (t *Twilio) ListCompositions(param *composition.GetParams) (*composition.Co
 		t.baseUrl.WithCompositionURIAndQueryParameters(values),
 		"",
 		nil,
+		nil,
 		ret,
 	); err != nil {
 		return nil, err
@@ -152,7 +182,9 @@ func (t *Twilio) ListCompositions(param *composition.GetParams) (*composition.Co
 	return ret, nil
 }
 
-func (t *Twilio) ListRoomCompletedCompositions(roomSid string) (*composition.CompositionList, error) {
+func (t *Twilio) ListRoomCompletedCompositions(
+	roomSid string,
+) (*composition.CompositionList, error) {
 	ret := &composition.CompositionList{}
 	if err := t.request(
 		http.MethodGet,
@@ -162,6 +194,7 @@ func (t *Twilio) ListRoomCompletedCompositions(roomSid string) (*composition.Com
 		}),
 		"",
 		nil,
+		nil,
 		ret,
 	); err != nil {
 		return nil, err
@@ -170,18 +203,45 @@ func (t *Twilio) ListRoomCompletedCompositions(roomSid string) (*composition.Com
 	return ret, nil
 }
 
-func (t *Twilio) ListRecordingsByRoomSid(roomSid string) (*recording.RecordingList, error) {
+type RecordingFilter struct {
+	MediaType string
+}
+
+func (t *Twilio) ListRecordingsByRoomSid(
+	roomSid string,
+	filter *RecordingFilter,
+) (*recording.RecordingList, error) {
+	params := url.Values{"GroupingSid": []string{roomSid}}
+	if filter != nil {
+		if filter.MediaType != "" {
+			params.Set("MediaType", filter.MediaType)
+		}
+	}
+
 	dst := &recording.RecordingList{}
 	if err := t.request(
 		http.MethodGet,
-		t.baseUrl.WithRecordingsURIAndQueryParam(url.Values{"GroupingSid": []string{roomSid}}),
+		t.baseUrl.WithRecordingsURIAndQueryParam(params),
 		"",
+		nil,
 		nil,
 		dst,
 	); err != nil {
 		return nil, err
 	}
 	return dst, nil
+}
+
+func (t *Twilio) GetRecordingMedia(recordingSid string) (*recording.Media, error) {
+	dst := &recording.Media{}
+	return dst, t.request(
+		http.MethodGet,
+		t.baseUrl.WithRecordingsURI()+fmt.Sprintf("/%s/Media", recordingSid),
+		"",
+		nil,
+		func(status int) bool { return status == http.StatusFound },
+		dst,
+	)
 }
 
 func (t *Twilio) GetCompositionMedia(comSid string) (*composition.Composition, error) {
@@ -191,6 +251,7 @@ func (t *Twilio) GetCompositionMedia(comSid string) (*composition.Composition, e
 		t.baseUrl.WithCompositionURIMedia(comSid),
 		"",
 		nil,
+		nil,
 		ret,
 	); err != nil {
 		return nil, err
@@ -198,22 +259,26 @@ func (t *Twilio) GetCompositionMedia(comSid string) (*composition.Composition, e
 	return ret, nil
 }
 
-func (t *Twilio) fireWithAuth(req *http.Request) ([]byte, error) {
+func (t *Twilio) fireWithAuth(req *http.Request, checkStatus func(int) bool) ([]byte, error) {
 	req.SetBasicAuth(t.cred.ApiKeySid, t.cred.ApiKeySecret)
 	resp, err := t.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
-
-	if resp.StatusCode < http.StatusOK || resp.StatusCode > 299 {
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return nil, err
+	if checkStatus == nil {
+		checkStatus = func(i int) bool {
+			return resp.StatusCode >= http.StatusOK && resp.StatusCode < http.StatusMultipleChoices
 		}
-
-		return nil, errors.New(string(body))
 	}
 
+	if !checkStatus(resp.StatusCode) {
+		msg, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf(
+			"unexpected status code, status: %v, message: %s",
+			resp.StatusCode,
+			msg,
+		)
+	}
 	return io.ReadAll(resp.Body)
 }
 
@@ -240,6 +305,7 @@ func (t *Twilio) GetRoomInstance(roomSid string) (*rooms.RoomInstance, error) {
 		t.baseUrl.WithRoomsURI()+"/"+roomSid,
 		"",
 		nil,
+		nil,
 		dst,
 	); err != nil {
 		return nil, err
@@ -261,6 +327,7 @@ func (t *Twilio) ListRooms(params url.Values) (*rooms.RoomInstanceList, error) {
 		t.baseUrl.WithRoomsURIAndQueryParameters(params),
 		"",
 		nil,
+		nil,
 		dst,
 	); err != nil {
 		return nil, err
@@ -268,7 +335,12 @@ func (t *Twilio) ListRooms(params url.Values) (*rooms.RoomInstanceList, error) {
 	return dst, nil
 }
 
-func (t *Twilio) request(method, url, contentType string, body io.Reader, dst interface{}) error {
+func (t *Twilio) request(
+	method, url, contentType string,
+	body io.Reader,
+	checkStatus func(int) bool,
+	dst interface{},
+) error {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return err
@@ -277,7 +349,7 @@ func (t *Twilio) request(method, url, contentType string, body io.Reader, dst in
 	if contentType != "" {
 		req.Header.Set("Content-Type", contentType)
 	}
-	respBody, err := t.fireWithAuth(req)
+	respBody, err := t.fireWithAuth(req, checkStatus)
 	if err != nil {
 		return err
 	}
@@ -346,6 +418,7 @@ func (t *Twilio) CreateRoom(param *rooms.RoomPostParams) (*rooms.RoomInstance, e
 		t.baseUrl.WithRoomsURI(),
 		"application/x-www-form-urlencoded",
 		strings.NewReader(body.Encode()),
+		nil,
 		resp,
 	); err != nil {
 		return nil, err

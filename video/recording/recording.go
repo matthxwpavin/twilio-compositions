@@ -36,3 +36,7 @@ type RecordingList struct {
 		Key             string  `json:"key"`
 	} `json:"meta"`
 }
+
+type Media struct {
+	RedirectTo string `json:"redirect_to"`
+}
