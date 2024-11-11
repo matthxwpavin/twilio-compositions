@@ -2,6 +2,7 @@ package twilio
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -286,6 +287,18 @@ func TestGetRecordingMedia(t *testing.T) {
 		t.Error("could not get recording media", err)
 	}
 	print(media.RedirectTo)
+}
+
+func TestAuthenticateMediaLink(t *testing.T) {
+	url, err := twi.AuthenticateMediaLink(
+		context.Background(),
+		"https://video.twilio.com/v1/Recordings/RTc77b96e6589c7b0dc1b8689f153fb569/Media",
+		nil,
+	)
+	if err != nil {
+		t.Errorf("Could not authenticate media link: %v", err)
+	}
+	print(url)
 }
 
 func jsonPrint(scheme interface{}) {

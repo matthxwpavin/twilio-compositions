@@ -1,12 +1,14 @@
 package twilio
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/ajg/form"
@@ -424,4 +426,64 @@ func (t *Twilio) CreateRoom(param *rooms.RoomPostParams) (*rooms.RoomInstance, e
 		return nil, err
 	}
 	return resp, nil
+}
+
+var client = &http.Client{
+	CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	},
+}
+
+type AuthenticateMediaLinkOptions struct {
+	Ttl int // Default to 3600
+}
+
+func (t *Twilio) AuthenticateMediaLink(
+	ctx context.Context,
+	rawUrl string,
+	opts *AuthenticateMediaLinkOptions,
+) (string, error) {
+	defaultOpts := &AuthenticateMediaLinkOptions{
+		Ttl: 3600,
+	}
+	if opts == nil {
+		opts = defaultOpts
+	} else {
+		if opts.Ttl == 0 {
+			opts.Ttl = defaultOpts.Ttl
+		}
+	}
+	parsed, err := url.Parse(rawUrl)
+	if err != nil {
+		return "", err
+	}
+	parsed.RawQuery = url.Values{"Ttl": {strconv.Itoa(opts.Ttl)}}.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, parsed.String(), nil)
+	if err != nil {
+		return "", err
+	}
+	req.SetBasicAuth(t.cred.ApiKeySid, t.cred.ApiKeySecret)
+
+	responseBody := new(struct {
+		RedirecTo string `json:"redirect_to"`
+	})
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusBadRequest {
+		errMsg := fmt.Sprintf("unexpected response, status code: %v", resp.StatusCode)
+		rawBody, _ := io.ReadAll(resp.Body)
+		if len(rawBody) > 0 {
+			errMsg = fmt.Sprintf("%v, message: %v", errMsg, string(rawBody))
+		}
+		return "", errors.New(errMsg)
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(responseBody); err != nil {
+		return "", err
+	}
+	return responseBody.RedirecTo, nil
 }
