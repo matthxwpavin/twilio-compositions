@@ -195,6 +195,12 @@ type RoomPostParams struct {
 	AudioOny *bool `form:"AudioOnly,omitempty"`
 }
 
+const (
+	TrackKindAudio = "audio"
+	TrackKindVideo = "video"
+	TrackKindData  = "data"
+)
+
 // https://www.twilio.com/docs/video/api/status-callbacks#rooms-event-parameters
 type RoomCallBack struct {
 	// The AccountSid associated with this Room
