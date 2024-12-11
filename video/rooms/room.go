@@ -202,7 +202,7 @@ const (
 )
 
 // https://www.twilio.com/docs/video/api/status-callbacks#rooms-event-parameters
-type RoomCallBack struct {
+type RoomCallbackParameters struct {
 	// The AccountSid associated with this Room
 	AccountSid string `form:"AccountSid"`
 
