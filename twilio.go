@@ -14,6 +14,7 @@ import (
 	"github.com/ajg/form"
 	"github.com/matthxwpavin/twilio-compositions/video"
 	"github.com/matthxwpavin/twilio-compositions/video/composition"
+	"github.com/matthxwpavin/twilio-compositions/video/participants"
 	"github.com/matthxwpavin/twilio-compositions/video/recording"
 	"github.com/matthxwpavin/twilio-compositions/video/rooms"
 	"github.com/spf13/viper"
@@ -206,18 +207,23 @@ func (t *Twilio) ListRoomCompletedCompositions(
 }
 
 type RecordingFilter struct {
-	MediaType string
+	MediaType      string
+	RoomSid        string
+	ParticipantSid string
 }
 
-func (t *Twilio) ListRecordingsByRoomSid(
-	roomSid string,
-	filter *RecordingFilter,
+func (t *Twilio) ListRecordings(
+	filter RecordingFilter,
 ) (*recording.RecordingList, error) {
-	params := url.Values{"GroupingSid": []string{roomSid}}
-	if filter != nil {
-		if filter.MediaType != "" {
-			params.Set("MediaType", filter.MediaType)
-		}
+	params := url.Values{}
+	if filter.RoomSid != "" {
+		params.Add("GroupingSid", filter.RoomSid)
+	}
+	if filter.ParticipantSid != "" {
+		params.Add("GroupingSid", filter.ParticipantSid)
+	}
+	if filter.MediaType != "" {
+		params.Set("MediaType", filter.MediaType)
 	}
 
 	dst := &recording.RecordingList{}
@@ -363,7 +369,6 @@ func (t *Twilio) request(
 }
 
 func (t *Twilio) formValues(p video.VideoLayouter) (url.Values, error) {
-
 	var regionBytes []byte
 	layout := p.GetVideoLayout()
 	hasVideolayout := layout != nil
@@ -486,4 +491,18 @@ func (t *Twilio) AuthenticateMediaLink(
 		return "", err
 	}
 	return responseBody.RedirecTo, nil
+}
+
+func (t *Twilio) GetParticipantsByRoomSid(roomSid string) ([]participants.ParticipantInstance, error) {
+	resp := new(struct {
+		Participants []participants.ParticipantInstance `json:"participants"`
+	})
+	return resp.Participants, t.request(
+		http.MethodGet,
+		t.baseUrl.WithRoomParticipantsURI(roomSid),
+		"",
+		nil,
+		nil,
+		resp,
+	)
 }

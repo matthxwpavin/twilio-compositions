@@ -245,10 +245,10 @@ func TestListCompositions(t *testing.T) {
 		t.Errorf("error to parse time: %v", err)
 	}
 
-	//after := afterDate.Format(time.RFC3339)
+	// after := afterDate.Format(time.RFC3339)
 	param := composition.GetParams{
 		Status: &status,
-		//DateCreatedAfter:  &after,
+		// DateCreatedAfter:  &after,
 		DateCreatedBefore: nil,
 		RoomSid:           nil,
 	}
@@ -270,10 +270,12 @@ func TestGetRoomBySid(t *testing.T) {
 	jsonPrint(room)
 }
 
-func TestListRecordingsByRoomSid(t *testing.T) {
-	recs, err := twi.ListRecordingsByRoomSid(
-		"RM06bc1c5ac394effdb919741e792776b6",
-		&RecordingFilter{MediaType: MediaTypeAudio},
+func TestListRecordings(t *testing.T) {
+	recs, err := twi.ListRecordings(
+		RecordingFilter{
+			MediaType: MediaTypeAudio,
+			RoomSid:   "RM06bc1c5ac394effdb919741e792776b6",
+		},
 	)
 	if err != nil {
 		t.Error("could not get recordings", err)
@@ -282,7 +284,7 @@ func TestListRecordingsByRoomSid(t *testing.T) {
 }
 
 func TestGetRecordingMedia(t *testing.T) {
-	media, err := twi.GetRecordingMedia("RT1b86a6c9832f78a7f02b4871fba2d13e")
+	media, err := twi.GetRecordingMedia("RT99545ec1d5c10b9bed40195372544a9d")
 	if err != nil {
 		t.Error("could not get recording media", err)
 	}
@@ -313,4 +315,12 @@ func jsonPrint(scheme interface{}) {
 	}
 
 	fmt.Println(buf.String())
+}
+
+func TestGetRoomParticipants(t *testing.T) {
+	resp, err := twi.GetParticipantsByRoomSid("RMfcb5d69c724ce93fdf8f14f80134e853")
+	if err != nil {
+		t.Fatalf("Could not get room participants: %v", err)
+	}
+	jsonPrint(resp)
 }

@@ -1,6 +1,9 @@
 package video
 
-import "net/url"
+import (
+	"fmt"
+	"net/url"
+)
 
 type VideoUrl string
 
@@ -47,3 +50,8 @@ func (url VideoUrl) WithRecordingsURI() string {
 func (url VideoUrl) WithRecordingsURIAndQueryParam(values url.Values) string {
 	return url.WithRecordingsURI() + "?" + values.Encode()
 }
+
+func (url VideoUrl) WithRoomParticipantsURI(roomSid string) string {
+	return fmt.Sprintf("%s/%s/Participants", url.WithRoomsURI(), roomSid)
+}
+
