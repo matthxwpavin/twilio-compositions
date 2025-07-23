@@ -19,7 +19,8 @@ type RecordingInstance struct {
 	GroupingSids    struct {
 		RoomSid string `json:"room_sid"`
 	} `json:"grouping_sids"`
-	Links struct {
+	MediaExternalLocation string `json:"media_external_location"`
+	Links                 struct {
 		Media string `json:"media"`
 	} `json:"links"`
 }
